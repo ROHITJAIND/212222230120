@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TextField, Button, Typography, Grid, Card, CardContent } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { isValidUrl, isValidShortcode, isUniqueCode } from '../utils/validation';
 import { generateUniqueCode } from '../utils/shortCodeGenerator';
 import { saveToStorage } from '../utils/storage';
@@ -10,6 +11,7 @@ const ShortenerPage = () => {
     Array.from({ length: 5 }, () => ({ url: '', validity: '', code: '' }))
   );
   const [results, setResults] = useState([]);
+  const navigate = useNavigate();
 
   const handleChange = (index, field, value) => {
     const newEntries = [...entries];
@@ -53,6 +55,10 @@ const ShortenerPage = () => {
     setResults(newResults);
   };
 
+  const handleGoToStats = () => {
+    navigate('/stats');
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <Typography variant="h4">URL Shortener</Typography>
@@ -86,9 +92,18 @@ const ShortenerPage = () => {
         </Grid>
       ))}
 
-      <Button variant="contained" onClick={handleShorten} style={{ marginTop: 20 }}>
-        Shorten URLs
-      </Button>
+      <div style={{ marginTop: 20 }}>
+        <Button variant="contained" onClick={handleShorten}>
+          Shorten URLs
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handleGoToStats}
+          style={{ marginLeft: 10 }}
+        >
+          View Stats
+        </Button>
+      </div>
 
       <div style={{ marginTop: 20 }}>
         {results.map((r) => (

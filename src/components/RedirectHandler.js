@@ -1,29 +1,47 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getFromStorage, updateClicks } from '../utils/storage';
+import { getFromStorage, saveToStorage } from '../utils/storage';
 import { logEvent } from '../utils/logger';
 
 const RedirectHandler = () => {
   const { shortcode } = useParams();
-  const [error, setError] = useState('');
 
   useEffect(() => {
     const data = getFromStorage(shortcode);
-    if (!data || Date.now() > data.expiresAt) {
-      setError('Link expired or invalid');
+    if (!data) {
+      alert("Invalid or expired URL.");
+      window.location.href = "/";
       return;
     }
-    const click = {
-      timestamp: Date.now(),
-      source: document.referrer || 'Direct',
-      location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+
+    const now = Date.now();
+    if (now > data.expiresAt) {
+      alert("This link has expired.");
+      window.location.href = "/";
+      return;
+    }
+
+    const clickData = {
+      timestamp: new Date().toISOString(),
+      source: document.referrer || "direct",
+      geo: getSimulatedGeoLocation(), // Simulated for now
     };
-    updateClicks(shortcode, click);
-    logEvent("REDIRECT_CLICK", click);
+
+    data.clicks.push(clickData);
+    data.clickCount += 1;
+
+    saveToStorage(shortcode, data);
+    logEvent("URL_CLICKED", { shortcode, ...clickData });
+
     window.location.href = data.originalUrl;
   }, [shortcode]);
 
-  return <div style={{ padding: 20 }}>{error ? error : 'Redirecting...'}</div>;
+  const getSimulatedGeoLocation = () => {
+    const locations = ["India", "USA", "Germany", "Brazil", "Japan"];
+    return locations[Math.floor(Math.random() * locations.length)];
+  };
+
+  return <div>Redirecting...</div>;
 };
 
 export default RedirectHandler;
